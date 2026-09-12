@@ -3,8 +3,7 @@
 #include <WebServer.h>
 #include <WebSocketsServer.h>
 #include <WebSocketsClient.h>
-
-#include <TJpg_Decoder.h>
+#include <JPEGDEC.h>
 #include <SPI.h>
 #include <TFT_eSPI.h>
 
@@ -13,6 +12,7 @@ const char* ssid = "Home";
 const char* pass = "353Arm52@89";
 
 WebSocketsClient webSocket;
+JPEGDEC jpeg;
 
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
@@ -24,11 +24,12 @@ TFT_eSPI tft = TFT_eSPI();
 unsigned long lastMillis = 0;
 char buf[50];
 
-bool tft_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t* bitmap)
-{
-  if(y >= 320) {return 0;}
-  tft.pushImage(x,y,w,h,bitmap);
+
+int drawMCU(JPEGDRAW* pDraw){
+  int iCount;
+  iCount = pDraw->iWidth * pDraw->iHeight;
   //tft.pushImageDMA(x, y, w, h, bitmap); 
+  tft.pushImage(pDraw->x,pDraw->y,pDraw->iWidth,pDraw->iHeight,pDraw->pPixels);
 
   return 1;
 }
@@ -58,11 +59,15 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       
       uint16_t  widthI = 0;
       uint16_t heightI = 0;
-      
-      TJpgDec.getJpgSize(&widthI,&heightI,(const uint8_t*)payload,length);
-      //tft.startWrite();
-      TJpgDec.drawJpg(0,0,(const uint8_t*)payload,length);
-      //tft.endWrite();
+   
+
+      if(jpeg.openRAM(payload,length,drawMCU)){
+
+        //tft.setSwapBytes(true);
+        jpeg.setPixelType(RGB565_BIG_ENDIAN);
+        jpeg.decode(0,0,0);
+        jpeg.close();
+      }
 
       unsigned long time = millis()-lastMillis;
       lastMillis = millis();
@@ -107,15 +112,7 @@ void setup() {
   tft.fillScreen(TFT_GREENYELLOW);
   tft.setFreeFont(&FreeMono9pt7b);
   
-  // Image Scaling
-  TJpgDec.setJpgScale(1);
-
- // The byte order can be swapped (set true for TFT_eSPI)
-  TJpgDec.setSwapBytes(true);
-
-  TJpgDec.setCallback(tft_output);
-
-  // Start WebSocket Client
+ // Start WebSocket Client
 
   
   webSocket.begin("192.168.0.109",82,"/");

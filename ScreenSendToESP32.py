@@ -3,9 +3,11 @@ import cv2
 import numpy as np
 import websockets
 import pyautogui
+import mss
 
-screen_size = pyautogui.size();
-fps = 20.0;
+
+screen_size = pyautogui.size()
+fps = 15.0
 frame_delay = 1/fps
 
 print ("Recording started... Press 'q' to stop")
@@ -13,20 +15,28 @@ print ("Recording started... Press 'q' to stop")
 async def video_handler(websocket):
     client_ip, client_port = websocket.remote_address
     print(f"ESP32-CAM connected from: {client_ip} : {client_port}")
+
+    sct = mss.MSS()
+    monitor = sct.monitors[1]
     
     try:
         while True:
 
             start_time = asyncio.get_event_loop().time()
-            img = pyautogui.screenshot()
+            img = sct.grab(monitor) #pyautogui.screenshot()
 
             frame = np.array(img)
 
-            corrected_frame = cv2.cvtColor(frame,cv2.COLOR_RGB2BGR)
+            #corrected_frame = cv2.cvtColor(frame,cv2.COLOR_RGB2BGR)
 
-            resized_img = cv2.resize(corrected_frame,(320,240), fx = 0, fy = 0, interpolation=cv2.INTER_AREA)
+            resized_img = cv2.resize(frame,(320,240), fx = 0, fy = 0, interpolation=cv2.INTER_AREA)
+            kernel = np.array([[0,-1,0],
+                              [-1,5,-1],
+                              [0,-1,0]])
+            sharpImg = cv2.filter2D(resized_img, -1, kernel)
+            
 
-            success, encoded_img = cv2.imencode('.jpg', resized_img,[int(cv2.IMWRITE_JPEG_QUALITY),90])
+            success, encoded_img = cv2.imencode('.jpg', sharpImg,[int(cv2.IMWRITE_JPEG_QUALITY),85])
 
             if success:
                 await websocket.send(encoded_img.tobytes())

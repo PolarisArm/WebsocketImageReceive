@@ -1,10 +1,9 @@
 
 # Websocket Image Receive from PC
 
-Need to change Websocket max data size to 35kb, Otherwise it will not work.
+Need to change Websocket max data size to 35kb to 50kb, Otherwise it will crash randomly.
 
-![alt text](image.png)
-
+![alt text](image-1.png)
 ### Library needed
 ```
 	bodmer/TFT_eSPI@^2.5.43
@@ -16,3 +15,5 @@ Need to change Websocket max data size to 35kb, Otherwise it will not work.
 
 
 ## Yes Quality is Poatato!! Max 7-8 fps
+
+![alt text](20260912_144503.jpg)
