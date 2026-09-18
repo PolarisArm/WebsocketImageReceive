@@ -8,8 +8,8 @@
 #include <TFT_eSPI.h>
 
 
-const char* ssid = "Home";
-const char* pass = "353Arm52@89";
+const char* ssid = "-----";
+const char* pass = "-----";
 
 WebSocketsClient webSocket;
 JPEGDEC jpeg;
