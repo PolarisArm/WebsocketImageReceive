@@ -36,7 +36,7 @@ async def video_handler(websocket):
             sharpImg = cv2.filter2D(resized_img, -1, kernel)
             
 
-            success, encoded_img = cv2.imencode('.jpg', sharpImg,[int(cv2.IMWRITE_JPEG_QUALITY),85])
+            success, encoded_img = cv2.imencode('.jpg', sharpImg,[int(cv2.IMWRITE_JPEG_QUALITY),50])
 
             if success:
                 await websocket.send(encoded_img.tobytes())
@@ -61,7 +61,7 @@ async def main():
     port = 82
     print(f"Python WebSocket Server started. Listening on port {port}...")
     
-    async with websockets.serve(video_handler, "0.0.0.0", port):
+    async with websockets.serve(video_handler, "0.0.0.0", port,ping_interval=20, ping_timeout=20,max_size=None):
         await asyncio.Future()  # Keep the server running forever
 
 if __name__ == "__main__":
